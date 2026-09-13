@@ -17,25 +17,26 @@ export class ProveedoresService {
   }
 
   async findAll(): Promise<Proveedor[]> {
-    return this.knex<Proveedor>('proveedores').select('*');
+    return this.knex<Proveedor>('proveedores').where({ estado: 'activo' }).select('*');
   }
 
   async findOne(id: number): Promise<Proveedor | null> {
-    const proveedor = await this.knex<Proveedor>('proveedores').where({ id }).first();
+    const proveedor = await this.knex<Proveedor>('proveedores').where({ id, estado: 'activo' }).first();
     return proveedor || null;
   }
 
   async update(id: number, updateProveedoreDto: UpdateProveedoreDto): Promise<Proveedor> {
+    const proveedor = await this.findOne(id);
+    if (!proveedor) throw new NotFoundException(`Proveedor con ID ${id} no encontrado`);
     await this.knex('proveedores').where({ id }).update(updateProveedoreDto);
     const updated = await this.findOne(id);
-    if (!updated) throw new NotFoundException(`Proveedor con ID ${id} no encontrado`);
-    return updated;
+    return updated!;
   }
 
   async remove(id: number): Promise<Proveedor> {
     const proveedor = await this.findOne(id);
     if (!proveedor) throw new NotFoundException(`Proveedor con ID ${id} no encontrado`);
-    await this.knex('proveedores').where({ id }).del();
-    return proveedor;
+    await this.knex('proveedores').where({ id }).update({ estado: 'inactivo' });
+    return { ...proveedor, estado: 'inactivo' };
   }
 }

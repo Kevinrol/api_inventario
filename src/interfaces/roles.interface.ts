@@ -1,9 +1,10 @@
-enum Roles {
+export enum RolNombre {
   SUPER_ADMIN = 'super_admin',
   ADMIN = 'admin',
-  EMPLEADO = 'empleado' 
+  EMPLEADO = 'empleado',
 }
-export interface Rol{
-  id_rol : number;
-  nombre_rol : Roles;
-}
+
+export interface Rol {
+  id?: number;
+  nombre: string | RolNombre;
+}

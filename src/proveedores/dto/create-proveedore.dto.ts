@@ -7,9 +7,14 @@ export class CreateProveedoreDto {
   @MaxLength(20)
   nit: string;
 
-  @ApiProperty({ description: 'Razón social registrada de la empresa', maxLength: 150 })
+  @ApiProperty({ description: 'El nombre del proveedor', maxLength: 30 })
   @IsString()
-  @MaxLength(150)
+  @MaxLength(30)
+  nombre: string;
+
+  @ApiProperty({ description: 'Razón social registrada del proveedor ', maxLength: 50 })
+  @IsString()
+  @MaxLength(50)
   razon_social: string;
 
   @ApiPropertyOptional({ description: 'Teléfono de contacto principal', maxLength: 20 })
@@ -18,16 +23,11 @@ export class CreateProveedoreDto {
   @MaxLength(20)
   telefono_contacto?: string;
 
-  @ApiProperty({ description: 'El nombre del contacto o representante', maxLength: 100 })
-  @IsString()
-  @MaxLength(100)
-  nombre: string;
-
-  @ApiPropertyOptional({ description: 'Nombre comercial de la empresa', maxLength: 150 })
+  @ApiPropertyOptional({ description: 'Tipo de material que provee', maxLength: 150 })
   @IsString()
   @IsOptional()
   @MaxLength(150)
-  empresa?: string;
+  linea_productos?: string;
 
   @ApiPropertyOptional({ description: 'Las condiciones o el tipo de pago', maxLength: 100 })
   @IsString()

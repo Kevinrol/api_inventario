@@ -5,11 +5,11 @@ export enum EstadoProveedor {
 
 export interface Proveedor {
   id?: number;
-  nombre?: string | null;
   nit: string;
+  nombre: string;
   razon_social: string;
   telefono_contacto?: string | null;
-  empresa?: string | null;
+  linea_productos?: string | null;
   tipo_pago?: string | null;
   estado?: string | EstadoProveedor | null;
 }
