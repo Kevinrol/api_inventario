@@ -1,43 +1,50 @@
-import { IsString, IsOptional, MaxLength } from 'class-validator';
+import { IsString, IsOptional, MaxLength, IsBoolean, IsArray } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateProveedoreDto {
-  @ApiProperty({ description: 'El NIT (Número de Identificación Tributaria)', maxLength: 20 })
+  @ApiProperty({ description: 'El NIT (Número de Identificación Tributaria)', maxLength: 20, example: '1029384756' })
   @IsString()
   @MaxLength(20)
   nit: string;
 
-  @ApiProperty({ description: 'El nombre del proveedor', maxLength: 30 })
-  @IsString()
-  @MaxLength(30)
-  nombre: string;
-
-  @ApiProperty({ description: 'Razón social registrada del proveedor ', maxLength: 50 })
+  @ApiProperty({ description: 'Razón social registrada del proveedor', maxLength: 50, example: 'Distribuidora Papelera S.A.' })
   @IsString()
   @MaxLength(50)
   razon_social: string;
 
-  @ApiPropertyOptional({ description: 'Teléfono de contacto principal', maxLength: 20 })
+  @ApiPropertyOptional({ description: 'El nombre del contacto', maxLength: 50, example: 'Carlos Mendoza' })
+  @IsString()
+  @IsOptional()
+  @MaxLength(50)
+  nombre_contacto?: string;
+
+  @ApiPropertyOptional({ description: 'Teléfono de contacto principal', maxLength: 20, example: '+591 76543210' })
   @IsString()
   @IsOptional()
   @MaxLength(20)
   telefono_contacto?: string;
 
-  @ApiPropertyOptional({ description: 'Tipo de material que provee', maxLength: 150 })
+  @ApiPropertyOptional({ description: 'Ciudad del proveedor', maxLength: 50, example: 'Santa Cruz' })
   @IsString()
   @IsOptional()
-  @MaxLength(150)
-  linea_productos?: string;
+  @MaxLength(50)
+  ciudad?: string;
 
-  @ApiPropertyOptional({ description: 'Las condiciones o el tipo de pago', maxLength: 100 })
-  @IsString()
+  @ApiPropertyOptional({ description: 'Líneas de productos que provee', type: [String], example: ['Cuadernos', 'Lápices', 'Mochilas'] })
+  @IsArray()
+  @IsString({ each: true })
   @IsOptional()
-  @MaxLength(100)
-  tipo_pago?: string;
+  lineas_productos?: string[];
 
-  @ApiPropertyOptional({ description: 'Estado del proveedor (ej. activo/inactivo)', maxLength: 10, default: 'activo' })
-  @IsString()
+  @ApiPropertyOptional({ description: 'Marcas distribuidas por el proveedor', type: [String], example: ['Faber-Castell', 'Norma', 'Loro'] })
+  @IsArray()
+  @IsString({ each: true })
   @IsOptional()
-  @MaxLength(10)
-  estado?: string;
+  marcas?: string[];
+
+  @ApiProperty({ description: 'Estado del proveedor (true = activo, false = inactivo)', example: true })
+  @IsBoolean()
+  estado: boolean;
 }
+
+

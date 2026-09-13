@@ -11,7 +11,7 @@ export const databaseProvider: Provider = {
     const databaseUrl = configService.get<string>('DATABASE_URL');
     
     return knex({
-      client: 'mysql2',
+      client: 'pg',
       connection: databaseUrl,
       pool: { min: 2, max: 10 },
     });

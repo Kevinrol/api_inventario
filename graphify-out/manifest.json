@@ -1,0 +1,218 @@
+{
+  "eslint.config.mjs": {
+    "mtime": 1789224099.677699,
+    "seen": 1789334775.00762,
+    "ast_hash": "069d66f3fd2af0b03d917cf51a1f4c42",
+    "semantic_hash": "069d66f3fd2af0b03d917cf51a1f4c42"
+  },
+  "nest-cli.json": {
+    "mtime": 1789224099.677699,
+    "seen": 1789334775.00762,
+    "ast_hash": "fa439650fa28a1a7aa8c2b6d81c8cc20",
+    "semantic_hash": "fa439650fa28a1a7aa8c2b6d81c8cc20"
+  },
+  "package.json": {
+    "mtime": 1789333110.0249336,
+    "seen": 1789334775.00762,
+    "ast_hash": "364fd6a67a3f73b054c21e0af18647be",
+    "semantic_hash": "364fd6a67a3f73b054c21e0af18647be"
+  },
+  "src/app.controller.spec.ts": {
+    "mtime": 1789224099.677699,
+    "seen": 1789334775.00762,
+    "ast_hash": "e91fed2ee35431d60d1adbf1d5739b83",
+    "semantic_hash": "e91fed2ee35431d60d1adbf1d5739b83"
+  },
+  "src/app.controller.ts": {
+    "mtime": 1789224099.677699,
+    "seen": 1789334775.00762,
+    "ast_hash": "ae15d1c5a85e6ebfad68b7193766dfb5",
+    "semantic_hash": "ae15d1c5a85e6ebfad68b7193766dfb5"
+  },
+  "src/app.module.ts": {
+    "mtime": 1789305307.8823452,
+    "seen": 1789334775.00762,
+    "ast_hash": "4a5cc486166da94c363203568505e88c",
+    "semantic_hash": "4a5cc486166da94c363203568505e88c"
+  },
+  "src/app.service.ts": {
+    "mtime": 1789224099.677699,
+    "seen": 1789334775.00762,
+    "ast_hash": "08e985e831bca61f6be89c5c2ecef2fa",
+    "semantic_hash": "08e985e831bca61f6be89c5c2ecef2fa"
+  },
+  "src/database/database.module.ts": {
+    "mtime": 1789224099.6857736,
+    "seen": 1789334775.00762,
+    "ast_hash": "c5efb4b09cbb24d1cd2746d10bbf0dab",
+    "semantic_hash": "c5efb4b09cbb24d1cd2746d10bbf0dab"
+  },
+  "src/database/database.provider.ts": {
+    "mtime": 1789333119.65485,
+    "seen": 1789334775.00762,
+    "ast_hash": "e766abf29c1a06b8263cefed6a646f99",
+    "semantic_hash": "e766abf29c1a06b8263cefed6a646f99"
+  },
+  "src/interfaces/proveedor.interface.ts": {
+    "mtime": 1789332706.919295,
+    "seen": 1789334775.00762,
+    "ast_hash": "c7bf8b695727a0971d8529ffe9157a12",
+    "semantic_hash": "c7bf8b695727a0971d8529ffe9157a12"
+  },
+  "src/interfaces/roles.interface.ts": {
+    "mtime": 1789305307.8845682,
+    "seen": 1789334775.00762,
+    "ast_hash": "8dfcb508d926bbd4f113796f9be7dcff",
+    "semantic_hash": "8dfcb508d926bbd4f113796f9be7dcff"
+  },
+  "src/interfaces/usuario.interface.ts": {
+    "mtime": 1789305307.8845682,
+    "seen": 1789334775.00762,
+    "ast_hash": "01367486803611793e579b4462d86c0e",
+    "semantic_hash": "01367486803611793e579b4462d86c0e"
+  },
+  "src/main.ts": {
+    "mtime": 1789224099.6857736,
+    "seen": 1789334775.00762,
+    "ast_hash": "7f50261f57bf3718ec072dcd4b8952bf",
+    "semantic_hash": "7f50261f57bf3718ec072dcd4b8952bf"
+  },
+  "src/proveedores/dto/create-proveedore.dto.ts": {
+    "mtime": 1789332720.280707,
+    "seen": 1789334775.00762,
+    "ast_hash": "62e7a17c25916e9763f97215f44b5e2c",
+    "semantic_hash": "62e7a17c25916e9763f97215f44b5e2c"
+  },
+  "src/proveedores/dto/update-proveedore.dto.ts": {
+    "mtime": 1789332730.1451914,
+    "seen": 1789334775.00762,
+    "ast_hash": "904e1c63fd172bc73c9acb374528559a",
+    "semantic_hash": "904e1c63fd172bc73c9acb374528559a"
+  },
+  "src/proveedores/entities/proveedore.entity.ts": {
+    "mtime": 1789332739.9262357,
+    "seen": 1789334775.00762,
+    "ast_hash": "38256ae7c3458fdff5b3867c8337d4ac",
+    "semantic_hash": "38256ae7c3458fdff5b3867c8337d4ac"
+  },
+  "src/proveedores/proveedores.controller.spec.ts": {
+    "mtime": 1789224099.6857736,
+    "seen": 1789334775.00762,
+    "ast_hash": "3cbcb9c0b0746c332c1249541a95fb14",
+    "semantic_hash": "3cbcb9c0b0746c332c1249541a95fb14"
+  },
+  "src/proveedores/proveedores.controller.ts": {
+    "mtime": 1789224099.6857736,
+    "seen": 1789334775.00762,
+    "ast_hash": "e670a2d329473b921a5370181e377947",
+    "semantic_hash": "e670a2d329473b921a5370181e377947"
+  },
+  "src/proveedores/proveedores.integration.spec.ts": {
+    "mtime": 1789224099.6857736,
+    "seen": 1789334775.00762,
+    "ast_hash": "25dce78d26be118a6912363ecf059b3a",
+    "semantic_hash": "25dce78d26be118a6912363ecf059b3a"
+  },
+  "src/proveedores/proveedores.module.ts": {
+    "mtime": 1789224099.6857736,
+    "seen": 1789334775.00762,
+    "ast_hash": "e67ef72112cc7c6bade54fd97df78a1f",
+    "semantic_hash": "e67ef72112cc7c6bade54fd97df78a1f"
+  },
+  "src/proveedores/proveedores.service.spec.ts": {
+    "mtime": 1789224099.6857736,
+    "seen": 1789334775.00762,
+    "ast_hash": "2677b798f4abd3fd9fb5cf25c3ac4f27",
+    "semantic_hash": "2677b798f4abd3fd9fb5cf25c3ac4f27"
+  },
+  "src/proveedores/proveedores.service.ts": {
+    "mtime": 1789332766.3646092,
+    "seen": 1789334775.00762,
+    "ast_hash": "9ed3b76338f9a6b1c7c926afa2fb4414",
+    "semantic_hash": "9ed3b76338f9a6b1c7c926afa2fb4414"
+  },
+  "src/roles/dto/create-rol.dto.ts": {
+    "mtime": 1789305307.8860784,
+    "seen": 1789334775.00762,
+    "ast_hash": "1f96806335ef760665542c85b9816586",
+    "semantic_hash": "1f96806335ef760665542c85b9816586"
+  },
+  "src/roles/dto/update-rol.dto.ts": {
+    "mtime": 1789305307.8860784,
+    "seen": 1789334775.00762,
+    "ast_hash": "6b70d7715544341b8cb9425c666b3a96",
+    "semantic_hash": "6b70d7715544341b8cb9425c666b3a96"
+  },
+  "src/roles/roles.controller.ts": {
+    "mtime": 1789305307.8860784,
+    "seen": 1789334775.00762,
+    "ast_hash": "382636d92f9ffd548af9659d9ff8585b",
+    "semantic_hash": "382636d92f9ffd548af9659d9ff8585b"
+  },
+  "src/roles/roles.module.ts": {
+    "mtime": 1789305307.8860784,
+    "seen": 1789334775.00762,
+    "ast_hash": "7d2c44157f5e5c8329945b0317bc1ba6",
+    "semantic_hash": "7d2c44157f5e5c8329945b0317bc1ba6"
+  },
+  "src/roles/roles.service.ts": {
+    "mtime": 1789305307.8860784,
+    "seen": 1789334775.00762,
+    "ast_hash": "9d4f8bb930433d454b19289993a41a46",
+    "semantic_hash": "9d4f8bb930433d454b19289993a41a46"
+  },
+  "src/usuarios/dto/create-usuario.dto.ts": {
+    "mtime": 1789305307.8860784,
+    "seen": 1789334775.00762,
+    "ast_hash": "14221d45e0c27410912aca5a3f0043b0",
+    "semantic_hash": "14221d45e0c27410912aca5a3f0043b0"
+  },
+  "src/usuarios/dto/update-usuario.dto.ts": {
+    "mtime": 1789305307.8860784,
+    "seen": 1789334775.00762,
+    "ast_hash": "053c38c911d11df3a63501a79e5490cc",
+    "semantic_hash": "053c38c911d11df3a63501a79e5490cc"
+  },
+  "src/usuarios/usuarios.controller.ts": {
+    "mtime": 1789305307.8860784,
+    "seen": 1789334775.00762,
+    "ast_hash": "bd357e8f9f01a3261cf8a679ae5fd974",
+    "semantic_hash": "bd357e8f9f01a3261cf8a679ae5fd974"
+  },
+  "src/usuarios/usuarios.module.ts": {
+    "mtime": 1789305307.8860784,
+    "seen": 1789334775.00762,
+    "ast_hash": "b09feae2332587829790f45c4b0da3de",
+    "semantic_hash": "b09feae2332587829790f45c4b0da3de"
+  },
+  "src/usuarios/usuarios.service.ts": {
+    "mtime": 1789305307.8860784,
+    "seen": 1789334775.00762,
+    "ast_hash": "7b57867ea7f085ced8539160e8a00056",
+    "semantic_hash": "7b57867ea7f085ced8539160e8a00056"
+  },
+  "test/app.e2e-spec.ts": {
+    "mtime": 1789224099.6857736,
+    "seen": 1789334775.00762,
+    "ast_hash": "668094bf268e0395763312620e5638e8",
+    "semantic_hash": "668094bf268e0395763312620e5638e8"
+  },
+  "test/jest-e2e.json": {
+    "mtime": 1789224099.6857736,
+    "seen": 1789334775.00762,
+    "ast_hash": "707a50895cb1c565825637916e9cf290",
+    "semantic_hash": "707a50895cb1c565825637916e9cf290"
+  },
+  "tsconfig.build.json": {
+    "mtime": 1789224099.6908872,
+    "seen": 1789334775.00762,
+    "ast_hash": "d23fc4aff02c91ce9c424c15aea9b49b",
+    "semantic_hash": "d23fc4aff02c91ce9c424c15aea9b49b"
+  },
+  "tsconfig.json": {
+    "mtime": 1789224099.6908872,
+    "seen": 1789334775.00762,
+    "ast_hash": "e99b998156dc99eda85378413a794718",
+    "semantic_hash": "e99b998156dc99eda85378413a794718"
+  }
+}
