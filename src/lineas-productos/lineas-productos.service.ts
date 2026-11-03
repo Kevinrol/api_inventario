@@ -1,4 +1,9 @@
-import { Injectable, Inject, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { CreateLineasProductoDto } from './dto/create-lineas-producto.dto';
 import { UpdateLineasProductoDto } from './dto/update-lineas-producto.dto';
 import { Knex } from 'knex';
@@ -9,13 +14,19 @@ import { LineasProducto } from './entities/lineas-producto.entity';
 export class LineasProductosService {
   constructor(@Inject(KNEX_CONNECTION) private readonly knex: Knex) {}
 
-  async create(createLineasProductoDto: CreateLineasProductoDto): Promise<LineasProducto> {
+  async create(
+    createLineasProductoDto: CreateLineasProductoDto,
+  ): Promise<LineasProducto> {
     try {
-      const [inserted] = await this.knex('lineas_productos').insert(createLineasProductoDto).returning('*');
+      const [inserted] = await this.knex('lineas_productos')
+        .insert(createLineasProductoDto)
+        .returning('*');
       return inserted;
     } catch (error: any) {
       if (error.code === '23505') {
-        throw new ConflictException(`La línea de producto '${createLineasProductoDto.nombre_linea}' ya existe.`);
+        throw new ConflictException(
+          `La línea de producto '${createLineasProductoDto.nombre_linea}' ya existe.`,
+        );
       }
       throw error;
     }
@@ -26,15 +37,22 @@ export class LineasProductosService {
   }
 
   async findOne(id_linea: number): Promise<LineasProducto> {
-    const linea = await this.knex<LineasProducto>('lineas_productos').where({ id_linea }).first();
-    if (!linea) throw new NotFoundException(`Línea con ID ${id_linea} no encontrada`);
+    const linea = await this.knex<LineasProducto>('lineas_productos')
+      .where({ id_linea })
+      .first();
+    if (!linea)
+      throw new NotFoundException(`Línea con ID ${id_linea} no encontrada`);
     return linea;
   }
 
-  async update(id_linea: number, updateLineasProductoDto: UpdateLineasProductoDto): Promise<LineasProducto> {
+  async update(
+    id_linea: number,
+    updateLineasProductoDto: UpdateLineasProductoDto,
+  ): Promise<LineasProducto> {
     const linea = await this.findOne(id_linea);
-    if (!linea) throw new NotFoundException(`Línea con ID ${id_linea} no encontrada`);
-    
+    if (!linea)
+      throw new NotFoundException(`Línea con ID ${id_linea} no encontrada`);
+
     try {
       const [updated] = await this.knex('lineas_productos')
         .where({ id_linea })
@@ -43,7 +61,9 @@ export class LineasProductosService {
       return updated;
     } catch (error: any) {
       if (error.code === '23505') {
-        throw new ConflictException(`La línea de producto '${updateLineasProductoDto.nombre_linea}' ya existe.`);
+        throw new ConflictException(
+          `La línea de producto '${updateLineasProductoDto.nombre_linea}' ya existe.`,
+        );
       }
       throw error;
     }
@@ -51,7 +71,8 @@ export class LineasProductosService {
 
   async remove(id_linea: number): Promise<void> {
     const linea = await this.findOne(id_linea);
-    if (!linea) throw new NotFoundException(`Línea con ID ${id_linea} no encontrada`);
+    if (!linea)
+      throw new NotFoundException(`Línea con ID ${id_linea} no encontrada`);
     await this.knex('lineas_productos').where({ id_linea }).delete();
   }
 }

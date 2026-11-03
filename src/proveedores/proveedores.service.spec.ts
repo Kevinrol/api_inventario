@@ -5,7 +5,7 @@ import { NotFoundException } from '@nestjs/common';
 
 describe('ProveedoresService', () => {
   let service: ProveedoresService;
-  
+
   // Simulamos el Query Builder de Knex
   const mockQueryBuilder = {
     insert: jest.fn(),
@@ -42,7 +42,7 @@ describe('ProveedoresService', () => {
     it('debería crear un nuevo proveedor', async () => {
       const createDto = { nombre: 'Proveedor A', nit: '123' };
       const createdRecord = { id: 1, ...createDto };
-      
+
       mockQueryBuilder.insert.mockResolvedValue([1]);
       mockQueryBuilder.first.mockResolvedValue(createdRecord);
 
@@ -106,7 +106,9 @@ describe('ProveedoresService', () => {
       mockQueryBuilder.update.mockResolvedValue(1);
       mockQueryBuilder.first.mockResolvedValue(undefined);
 
-      await expect(service.update(999, {} as any)).rejects.toThrow(NotFoundException);
+      await expect(service.update(999, {} as any)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 

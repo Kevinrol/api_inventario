@@ -4,6 +4,6 @@ import { LineasProductosService } from './lineas-productos.service';
 
 @Module({
   controllers: [LineasProductosController],
-  providers: [LineasProductosService]
+  providers: [LineasProductosService],
 })
 export class LineasProductosModule {}

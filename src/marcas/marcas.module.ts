@@ -4,6 +4,6 @@ import { MarcasService } from './marcas.service';
 
 @Module({
   controllers: [MarcasController],
-  providers: [MarcasService]
+  providers: [MarcasService],
 })
 export class MarcasModule {}

@@ -19,3 +19,25 @@ export interface Usuario {
   turno?: TurnoUsuario;
   estado: boolean;
 }
+
+export type UsuarioAutenticado = Omit<Usuario, 'password_hash'> & {
+  id_usuario: number;
+};
+
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+export interface JwtPayload {
+  sub: number;
+  username: string;
+  rol: RolUsuario;
+  iat: number;
+  exp: number;
+}
+
+export interface LoginResponse {
+  access_token: string;
+  usuario: UsuarioAutenticado;
+}

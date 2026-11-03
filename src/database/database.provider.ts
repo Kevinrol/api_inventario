@@ -9,7 +9,7 @@ export const databaseProvider: Provider = {
   inject: [ConfigService],
   useFactory: (configService: ConfigService) => {
     const databaseUrl = configService.get<string>('DATABASE_URL');
-    
+
     return knex({
       client: 'pg',
       connection: databaseUrl,

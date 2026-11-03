@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { LineasProductosService } from './lineas-productos.service';
 import { CreateLineasProductoDto } from './dto/create-lineas-producto.dto';
 import { UpdateLineasProductoDto } from './dto/update-lineas-producto.dto';
@@ -7,7 +16,9 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 @ApiTags('lineas-productos')
 @Controller('lineas-productos')
 export class LineasProductosController {
-  constructor(private readonly lineasProductosService: LineasProductosService) {}
+  constructor(
+    private readonly lineasProductosService: LineasProductosService,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Crea una nueva línea de producto' })
@@ -29,7 +40,10 @@ export class LineasProductosController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Actualiza una línea de producto' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateLineasProductoDto: UpdateLineasProductoDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateLineasProductoDto: UpdateLineasProductoDto,
+  ) {
     return this.lineasProductosService.update(id, updateLineasProductoDto);
   }
 

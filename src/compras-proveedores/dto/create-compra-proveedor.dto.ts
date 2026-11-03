@@ -1,4 +1,12 @@
-import { IsNumber, IsOptional, IsDateString, IsArray, ValidateNested, Min } from 'class-validator';
+import {
+  IsNumber,
+  IsOptional,
+  IsDateString,
+  IsArray,
+  ValidateNested,
+  Min,
+  IsString,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -6,6 +14,15 @@ export class CreateDetalleCompraProveedorDto {
   @ApiProperty({ description: 'ID del producto' })
   @IsNumber()
   id_producto: number;
+
+  @ApiProperty({
+    required: false,
+    description:
+      'ID de la línea de detalle del pedido (opcional; si la compra tiene id_pedido y se omite, se busca por id_producto)',
+  })
+  @IsOptional()
+  @IsNumber()
+  id_detalle_pedido?: number;
 
   @ApiProperty({ description: 'Cantidad recibida', example: 10 })
   @IsNumber()
@@ -27,16 +44,33 @@ export class CreateCompraProveedorDto {
   @IsNumber()
   id_usuario: number;
 
-  @ApiProperty({ required: false, description: 'ID del pedido (opcional si la compra viene de un pedido)' })
+  @ApiProperty({
+    required: false,
+    description: 'ID del pedido (opcional si la compra viene de un pedido)',
+  })
   @IsOptional()
   @IsNumber()
   id_pedido?: number;
 
-  @ApiProperty({ description: 'Fecha de recepción', example: '2026-09-27T10:00:00Z' })
+  @ApiProperty({
+    description: 'Fecha de recepción',
+    example: '2026-09-27T10:00:00Z',
+  })
   @IsDateString()
   fecha_recepcion: string;
 
-  @ApiProperty({ type: [CreateDetalleCompraProveedorDto], description: 'Detalle de los productos comprados' })
+  @ApiProperty({
+    required: false,
+    description: 'URL del comprobante o factura de compra (PDF o imagen)',
+  })
+  @IsOptional()
+  @IsString()
+  comprobante_url?: string;
+
+  @ApiProperty({
+    type: [CreateDetalleCompraProveedorDto],
+    description: 'Detalle de los productos comprados',
+  })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateDetalleCompraProveedorDto)

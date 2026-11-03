@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { MarcasService } from './marcas.service';
 import { CreateMarcaDto } from './dto/create-marca.dto';
 import { UpdateMarcaDto } from './dto/update-marca.dto';
@@ -29,7 +38,10 @@ export class MarcasController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Actualiza una marca' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateMarcaDto: UpdateMarcaDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateMarcaDto: UpdateMarcaDto,
+  ) {
     return this.marcasService.update(id, updateMarcaDto);
   }
 

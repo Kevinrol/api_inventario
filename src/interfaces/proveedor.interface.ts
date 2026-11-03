@@ -1,6 +1,6 @@
 export enum EstadoProveedor {
   ACTIVO = 'activo',
-  INACTIVO = 'inactivo'
+  INACTIVO = 'inactivo',
 }
 
 export interface Proveedor {
@@ -13,4 +13,4 @@ export interface Proveedor {
   lineas_productos?: string[];
   marcas?: string[];
   estado: boolean;
-}
+}

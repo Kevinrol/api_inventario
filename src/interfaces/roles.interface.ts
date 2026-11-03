@@ -7,4 +7,4 @@ export enum RolNombre {
 export interface Rol {
   id?: number;
   nombre: string | RolNombre;
-}
+}

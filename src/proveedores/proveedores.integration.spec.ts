@@ -35,7 +35,7 @@ describe('Proveedores Integration Test (tofor_test)', () => {
 
   beforeEach(async () => {
     // Limpiamos la tabla antes de cada prueba para asegurar un entorno aislado.
-    await db('proveedores').delete(); 
+    await db('proveedores').delete();
   });
 
   afterAll(async () => {
@@ -50,7 +50,7 @@ describe('Proveedores Integration Test (tofor_test)', () => {
         razon_social: 'Empresa Test SA',
         nombre: 'Juan Perez',
         telefono_contacto: '555-1234',
-        estado: 'activo'
+        estado: 'activo',
       };
 
       const result = await service.create(nuevoProveedor as any);
@@ -61,7 +61,9 @@ describe('Proveedores Integration Test (tofor_test)', () => {
       expect(result.nit).toBe(nuevoProveedor.nit);
 
       // Verificamos de forma independiente consultando directamente a la BD
-      const enBaseDeDatos = await db('proveedores').where({ id: result.id }).first();
+      const enBaseDeDatos = await db('proveedores')
+        .where({ id: result.id })
+        .first();
       expect(enBaseDeDatos).toBeDefined();
       expect(enBaseDeDatos.razon_social).toBe('Empresa Test SA');
     });
@@ -74,22 +76,24 @@ describe('Proveedores Integration Test (tofor_test)', () => {
       ]);
 
       const proveedores = await service.findAll();
-      
+
       expect(proveedores.length).toBeGreaterThanOrEqual(2);
-      expect(proveedores.map(p => p.nit)).toEqual(expect.arrayContaining(['111', '222']));
+      expect(proveedores.map((p) => p.nit)).toEqual(
+        expect.arrayContaining(['111', '222']),
+      );
     });
 
     it('debería actualizar un registro existente', async () => {
       // Insertamos registro inicial
-      const [id] = await db('proveedores').insert({ 
-        nit: '999', 
-        razon_social: 'Original', 
-        nombre: 'Pedro' 
+      const [id] = await db('proveedores').insert({
+        nit: '999',
+        razon_social: 'Original',
+        nombre: 'Pedro',
       });
 
       const actualizacion = { razon_social: 'Modificado' };
 
-      const result = await service.update(id, actualizacion as any);
+      const result = await service.update(id, actualizacion);
 
       expect(result.razon_social).toBe('Modificado');
 
@@ -99,10 +103,10 @@ describe('Proveedores Integration Test (tofor_test)', () => {
     });
 
     it('debería eliminar un proveedor de la tabla', async () => {
-      const [id] = await db('proveedores').insert({ 
-        nit: '444', 
-        razon_social: 'A Eliminar', 
-        nombre: 'Lucas' 
+      const [id] = await db('proveedores').insert({
+        nit: '444',
+        razon_social: 'A Eliminar',
+        nombre: 'Lucas',
       });
 
       await service.remove(id);
