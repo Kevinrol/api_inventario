@@ -80,7 +80,10 @@ export class VentasController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Actualizar estado de pago o cliente de una venta' })
+  @ApiOperation({
+    summary:
+      'Actualizar cliente, descuento, estado de pago o monto entregado de una venta',
+  })
   update(@Param('id') id: string, @Body() updateVentaDto: UpdateVentaDto) {
     return this.ventasService.update(+id, updateVentaDto);
   }

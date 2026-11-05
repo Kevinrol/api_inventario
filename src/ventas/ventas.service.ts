@@ -277,20 +277,114 @@ export class VentasService {
     id_venta: number,
     updateVentaDto: UpdateVentaDto,
   ): Promise<Venta> {
-    await this.findOne(id_venta);
-
-    if (updateVentaDto.id_cliente) {
-      const cliente = await this.knex('clientes')
-        .where({ id_cliente: updateVentaDto.id_cliente, estado: true })
+    await this.knex.transaction(async (trx) => {
+      const venta = await trx('ventas')
+        .where({ id_venta })
+        .forUpdate()
         .first();
-      if (!cliente) {
+
+      if (!venta) {
+        throw new NotFoundException(`Venta con ID ${id_venta} no encontrada`);
+      }
+
+      if (venta.estado_pago === EstadoPagoVenta.ANULADO) {
         throw new BadRequestException(
-          `El cliente con ID ${updateVentaDto.id_cliente} no existe o está inactivo.`,
+          `La venta con ID ${id_venta} está anulada y no puede editarse. Registra una nueva venta si es necesario.`,
         );
       }
-    }
 
-    await this.knex('ventas').where({ id_venta }).update(updateVentaDto);
+      if (updateVentaDto.estado_pago === EstadoPagoVenta.ANULADO) {
+        throw new BadRequestException(
+          'Para anular una venta usa la acción "Anular": el stock debe restituirse y no se hace desde la edición.',
+        );
+      }
+
+      if (
+        updateVentaDto.id_cliente !== undefined &&
+        updateVentaDto.id_cliente !== null
+      ) {
+        const cliente = await trx('clientes')
+          .where({ id_cliente: updateVentaDto.id_cliente, estado: true })
+          .first();
+        if (!cliente) {
+          throw new BadRequestException(
+            `El cliente con ID ${updateVentaDto.id_cliente} no existe o está inactivo.`,
+          );
+        }
+      }
+
+      // Subtotal real de la venta a partir de sus líneas. Si no hay líneas
+      // (datos históricos), se reconstruye desde el total y el descuento.
+      const suma = await trx('detalle_ventas')
+        .where({ id_venta })
+        .sum({ subtotal: 'subtotal' })
+        .first();
+      let subtotal = Number(suma?.subtotal ?? 0);
+      if (subtotal <= 0) {
+        subtotal =
+          Number(venta.monto_total ?? 0) +
+          Number(venta.monto_descuento ?? 0);
+      }
+      subtotal = Number(subtotal.toFixed(2));
+
+      const montoDescuento =
+        updateVentaDto.monto_descuento !== undefined
+          ? Number(updateVentaDto.monto_descuento)
+          : Number(venta.monto_descuento ?? 0);
+
+      if (montoDescuento > subtotal) {
+        throw new BadRequestException(
+          `El descuento (${montoDescuento}) no puede ser mayor al subtotal de la venta (${subtotal}).`,
+        );
+      }
+
+      const montoTotal = Number((subtotal - montoDescuento).toFixed(2));
+
+      let montoEfectivo: number | null = null;
+      let montoCambio: number | null = null;
+
+      if (venta.metodo_pago === MetodoPago.EFECTIVO) {
+        if (updateVentaDto.monto_efectivo !== undefined) {
+          montoEfectivo = Number(updateVentaDto.monto_efectivo);
+        } else if (
+          venta.monto_efectivo !== null &&
+          venta.monto_efectivo !== undefined
+        ) {
+          montoEfectivo = Number(venta.monto_efectivo);
+        }
+
+        if (montoEfectivo === null) {
+          throw new BadRequestException(
+            'La venta en efectivo no tiene un monto entregado registrado.',
+          );
+        }
+
+        if (montoEfectivo < montoTotal) {
+          throw new BadRequestException(
+            `El monto entregado (${montoEfectivo}) es menor al nuevo total de la venta (${montoTotal}).`,
+          );
+        }
+
+        montoCambio = Number((montoEfectivo - montoTotal).toFixed(2));
+      }
+
+      const cambios: Record<string, unknown> = {
+        monto_descuento: montoDescuento,
+        monto_total: montoTotal,
+        monto_efectivo: montoEfectivo,
+        monto_cambio: montoCambio,
+      };
+
+      if (updateVentaDto.id_cliente !== undefined) {
+        cambios.id_cliente = updateVentaDto.id_cliente;
+      }
+      if (updateVentaDto.estado_pago !== undefined) {
+        cambios.estado_pago = updateVentaDto.estado_pago;
+      }
+
+      await trx('ventas').where({ id_venta }).update(cambios);
+    });
+
     return this.findOne(id_venta);
   }
 

@@ -3,9 +3,11 @@ import {
   IsOptional,
   IsNumber,
   IsBoolean,
+  IsInt,
   MaxLength,
   Min,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateProductoDto {
@@ -15,6 +17,9 @@ export class CreateProductoDto {
     example: '123456789',
   })
   @IsOptional()
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.trim() || undefined : value,
+  )
   @IsString()
   @MaxLength(100)
   codigo_barras?: string;
@@ -41,8 +46,11 @@ export class CreateProductoDto {
   id_linea?: number;
 
   @ApiProperty({ description: 'Precio de venta del producto', example: 15.5 })
-  @IsNumber()
-  @Min(0)
+  @IsNumber(
+    { maxDecimalPlaces: 2 },
+    { message: 'El precio admite máximo 2 decimales.' },
+  )
+  @Min(0, { message: 'El precio no puede ser negativo.' })
   precio: number;
 
   @ApiProperty({
@@ -51,8 +59,8 @@ export class CreateProductoDto {
     default: 0,
   })
   @IsOptional()
-  @IsNumber()
-  @Min(0)
+  @IsInt({ message: 'La cantidad debe ser un número entero.' })
+  @Min(0, { message: 'La cantidad no puede ser negativa.' })
   stock_actual?: number;
 
   @ApiProperty({
@@ -61,8 +69,8 @@ export class CreateProductoDto {
     default: 5,
   })
   @IsOptional()
-  @IsNumber()
-  @Min(0)
+  @IsInt({ message: 'La cantidad debe ser un número entero.' })
+  @Min(0, { message: 'La cantidad no puede ser negativa.' })
   stock_minimo?: number;
 
   @ApiProperty({
