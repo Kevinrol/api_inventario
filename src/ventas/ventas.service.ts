@@ -12,11 +12,30 @@ import {
   Venta,
   MetodoPago,
   EstadoPagoVenta,
+  TipoVenta,
 } from '../interfaces/venta.interface';
+import { TipoCliente } from '../interfaces/cliente.interface';
+
+const MENSAJE_CREDITO_MAYORISTA =
+  'Las ventas a crédito solo están permitidas para clientes mayoristas registrados.';
 
 @Injectable()
 export class VentasService {
   constructor(@Inject(KNEX_CONNECTION) private readonly knex: Knex) {}
+
+  /**
+   * Una venta a crédito exige un cliente registrado y de tipo Mayorista.
+   * Las ventas generales (sin cliente) y los minoristas solo pueden ser al contado.
+   */
+  private validarCreditoMayorista(
+    tipoVenta: string,
+    cliente?: { tipo_cliente?: string } | null,
+  ): void {
+    if (tipoVenta !== TipoVenta.CREDITO) return;
+    if (!cliente || cliente.tipo_cliente !== TipoCliente.MAYORISTA) {
+      throw new BadRequestException(MENSAJE_CREDITO_MAYORISTA);
+    }
+  }
 
   private parseVenta(row: any): Venta {
     if (!row) return row;
@@ -50,8 +69,9 @@ export class VentasService {
       }
 
       // 2. Validar cliente si fue proporcionado
+      let cliente: any = null;
       if (ventaInfo.id_cliente) {
-        const cliente = await trx('clientes')
+        cliente = await trx('clientes')
           .where({ id_cliente: ventaInfo.id_cliente, estado: true })
           .first();
         if (!cliente) {
@@ -60,6 +80,9 @@ export class VentasService {
           );
         }
       }
+
+      // 2.1. El crédito solo está permitido para clientes mayoristas registrados
+      this.validarCreditoMayorista(ventaInfo.tipo_venta, cliente);
 
       // 3. Validar stock y preparar detalles con precios oficiales del servidor
       let montoTotalCalculado = 0;
@@ -278,10 +301,7 @@ export class VentasService {
     updateVentaDto: UpdateVentaDto,
   ): Promise<Venta> {
     await this.knex.transaction(async (trx) => {
-      const venta = await trx('ventas')
-        .where({ id_venta })
-        .forUpdate()
-        .first();
+      const venta = await trx('ventas').where({ id_venta }).forUpdate().first();
 
       if (!venta) {
         throw new NotFoundException(`Venta con ID ${id_venta} no encontrada`);
@@ -299,18 +319,38 @@ export class VentasService {
         );
       }
 
+      let clienteActualizado: any = null;
       if (
         updateVentaDto.id_cliente !== undefined &&
         updateVentaDto.id_cliente !== null
       ) {
-        const cliente = await trx('clientes')
+        clienteActualizado = await trx('clientes')
           .where({ id_cliente: updateVentaDto.id_cliente, estado: true })
           .first();
-        if (!cliente) {
+        if (!clienteActualizado) {
           throw new BadRequestException(
             `El cliente con ID ${updateVentaDto.id_cliente} no existe o está inactivo.`,
           );
         }
+      }
+
+      // Una venta a crédito no puede quedar asociada a un cliente minorista,
+      // general o sin cliente al momento de editarla.
+      if (venta.tipo_venta === TipoVenta.CREDITO) {
+        const idClienteFinal =
+          updateVentaDto.id_cliente !== undefined
+            ? updateVentaDto.id_cliente
+            : venta.id_cliente;
+
+        const clienteFinal =
+          clienteActualizado ??
+          (idClienteFinal != null
+            ? await trx('clientes')
+                .where({ id_cliente: idClienteFinal })
+                .first()
+            : null);
+
+        this.validarCreditoMayorista(venta.tipo_venta, clienteFinal);
       }
 
       // Subtotal real de la venta a partir de sus líneas. Si no hay líneas
@@ -322,8 +362,7 @@ export class VentasService {
       let subtotal = Number(suma?.subtotal ?? 0);
       if (subtotal <= 0) {
         subtotal =
-          Number(venta.monto_total ?? 0) +
-          Number(venta.monto_descuento ?? 0);
+          Number(venta.monto_total ?? 0) + Number(venta.monto_descuento ?? 0);
       }
       subtotal = Number(subtotal.toFixed(2));
 

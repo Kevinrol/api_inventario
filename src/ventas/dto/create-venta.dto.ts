@@ -3,6 +3,7 @@ import {
   IsOptional,
   IsEnum,
   IsArray,
+  ValidateIf,
   ValidateNested,
   ArrayMinSize,
   IsDateString,
@@ -27,11 +28,22 @@ export class CreateVentaDto {
 
   @ApiProperty({
     required: false,
-    description: 'ID del cliente (opcional para venta general)',
+    description:
+      'ID del cliente (opcional para venta general). Obligatorio cuando tipo_venta es "Credito" y debe ser un cliente Mayorista.',
     example: 1,
   })
-  @IsOptional()
-  @IsNumber()
+  @ValidateIf(
+    (dto: CreateVentaDto) =>
+      dto.tipo_venta === TipoVenta.CREDITO ||
+      (dto.id_cliente !== undefined && dto.id_cliente !== null),
+  )
+  @IsNumber(
+    {},
+    {
+      message:
+        'Las ventas a crédito solo están permitidas para clientes mayoristas registrados.',
+    },
+  )
   id_cliente?: number;
 
   @ApiProperty({
@@ -46,7 +58,8 @@ export class CreateVentaDto {
   @ApiProperty({
     enum: TipoVenta,
     default: TipoVenta.CONTADO,
-    description: 'Tipo de venta',
+    description:
+      'Tipo de venta. "Credito" solo está permitido para clientes Mayoristas registrados.',
   })
   @IsEnum(TipoVenta)
   tipo_venta: TipoVenta;

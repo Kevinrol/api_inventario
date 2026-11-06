@@ -14,7 +14,11 @@ import { CreateDetallePedidoProveedorDto } from './create-detalle-pedido-proveed
 import { EstadoPedido } from '../../interfaces/pedido-proveedor.interface';
 
 export class CreatePedidoProveedorDto {
-  @ApiProperty({ description: 'ID del proveedor', example: 1 })
+  @ApiProperty({
+    description:
+      'ID del proveedor. Define las marcas y líneas válidas para los productos del detalle.',
+    example: 1,
+  })
   @IsNumber()
   id_proveedor: number;
 
@@ -55,7 +59,8 @@ export class CreatePedidoProveedorDto {
 
   @ApiProperty({
     required: false,
-    description: 'URL del comprobante o nota de pedido (PDF o imagen en Supabase Storage)',
+    description:
+      'URL del comprobante o nota de pedido (PDF o imagen en Supabase Storage)',
   })
   @IsOptional()
   @IsString()
@@ -63,7 +68,8 @@ export class CreatePedidoProveedorDto {
 
   @ApiProperty({
     type: [CreateDetallePedidoProveedorDto],
-    description: 'Detalle de los productos pedidos',
+    description:
+      'Detalle de los productos pedidos. Cada producto debe pertenecer a una marca o línea abastecida por el proveedor indicado.',
   })
   @IsArray()
   @ArrayMinSize(1)

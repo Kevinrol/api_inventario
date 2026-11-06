@@ -64,17 +64,56 @@ export class PedidosProveedorService {
         );
       }
 
-      // 2. Calcular subtotales y total acumulado
+      // 2. Obtener las marcas y líneas que abastece el proveedor para validar
+      //    que cada producto del detalle le corresponda (sin asignaciones cruzadas).
+      const [marcasProveedor, lineasProveedor] = await Promise.all([
+        trx('proveedor_marcas')
+          .where({ id_proveedor: pedidoInfo.id_proveedor })
+          .pluck('id_marca'),
+        trx('proveedor_lineas')
+          .where({ id_proveedor: pedidoInfo.id_proveedor })
+          .pluck('id_linea'),
+      ]);
+
+      const idsMarcasProveedor = new Set(
+        marcasProveedor.map((id) => Number(id)),
+      );
+      const idsLineasProveedor = new Set(
+        lineasProveedor.map((id) => Number(id)),
+      );
+
+      if (idsMarcasProveedor.size === 0 && idsLineasProveedor.size === 0) {
+        throw new BadRequestException(
+          `El proveedor "${proveedor.razon_social}" no tiene marcas ni líneas asociadas. Asocie al menos una marca o línea antes de registrar una orden de pedido.`,
+        );
+      }
+
+      // 3. Calcular subtotales y total acumulado
       let totalCalculado = 0;
       const detallesAInsertar: any[] = [];
 
       for (const item of detalles) {
-        const producto = await trx('productos')
-          .where({ id_producto: item.id_producto })
+        const producto = await trx('productos as p')
+          .leftJoin('marcas as m', 'p.id_marca', 'm.id_marca')
+          .leftJoin('lineas_productos as l', 'p.id_linea', 'l.id_linea')
+          .select('p.*', 'm.nombre_marca', 'l.nombre_linea')
+          .where('p.id_producto', item.id_producto)
           .first();
         if (!producto) {
           throw new NotFoundException(
             `Producto con ID ${item.id_producto} no encontrado.`,
+          );
+        }
+
+        const perteneceAlProveedor =
+          (producto.id_marca != null &&
+            idsMarcasProveedor.has(Number(producto.id_marca))) ||
+          (producto.id_linea != null &&
+            idsLineasProveedor.has(Number(producto.id_linea)));
+
+        if (!perteneceAlProveedor) {
+          throw new BadRequestException(
+            `El producto "${producto.nombre_producto}" (marca: ${producto.nombre_marca ?? 'sin marca'}, línea: ${producto.nombre_linea ?? 'sin línea'}) no corresponde a las marcas ni líneas abastecidas por el proveedor "${proveedor.razon_social}".`,
           );
         }
 
@@ -102,7 +141,7 @@ export class PedidosProveedorService {
         });
       }
 
-      // 3. Insertar maestro siempre con estado Pendiente
+      // 4. Insertar maestro siempre con estado Pendiente
       const [pedidoInsertado] = await trx('pedidos_proveedor')
         .insert({
           id_proveedor: pedidoInfo.id_proveedor,
@@ -117,7 +156,7 @@ export class PedidosProveedorService {
         })
         .returning('*');
 
-      // 4. Insertar detalles
+      // 5. Insertar detalles
       const detallesFinales: any[] = [];
       for (const d of detallesAInsertar) {
         const [detInsertado] = await trx('detalle_pedidos_proveedor')
@@ -377,7 +416,8 @@ export class PedidosProveedorService {
           for (const item of dto.detalles) {
             const lineaPedido = detallesPedido.find((dp) =>
               item.id_detalle_pedido != null
-                ? Number(dp.id_detalle_pedido) === Number(item.id_detalle_pedido)
+                ? Number(dp.id_detalle_pedido) ===
+                  Number(item.id_detalle_pedido)
                 : Number(dp.id_producto) === Number(item.id_producto),
             );
 
@@ -447,9 +487,7 @@ export class PedidosProveedorService {
         }
 
         const totalPagado = Number(
-          lineasARecibir
-            .reduce((acc, l) => acc + l.subtotal, 0)
-            .toFixed(2),
+          lineasARecibir.reduce((acc, l) => acc + l.subtotal, 0).toFixed(2),
         );
 
         // 1. Crear la compra asociada en compras_proveedores
