@@ -82,8 +82,9 @@ export class ProveedoresService {
             'proveedor_marcas.id_marca',
           )
           .where('proveedor_marcas.id_proveedor', p.id_proveedor)
-          .select('marcas.nombre_marca');
+          .select('marcas.id_marca', 'marcas.nombre_marca');
         p.marcas = marcas.map((m: any) => m.nombre_marca);
+        (p as any).ids_marcas = marcas.map((m: any) => Number(m.id_marca));
 
         const lineas = await this.knex('lineas_productos')
           .join(
@@ -92,8 +93,9 @@ export class ProveedoresService {
             'proveedor_lineas.id_linea',
           )
           .where('proveedor_lineas.id_proveedor', p.id_proveedor)
-          .select('lineas_productos.nombre_linea');
+          .select('lineas_productos.id_linea', 'lineas_productos.nombre_linea');
         p.lineas_productos = lineas.map((l: any) => l.nombre_linea);
+        (p as any).ids_lineas = lineas.map((l: any) => Number(l.id_linea));
       }
     }
 
@@ -116,8 +118,9 @@ export class ProveedoresService {
     const marcas = await tx('marcas')
       .join('proveedor_marcas', 'marcas.id_marca', 'proveedor_marcas.id_marca')
       .where('proveedor_marcas.id_proveedor', id_proveedor)
-      .select('marcas.nombre_marca');
+      .select('marcas.id_marca', 'marcas.nombre_marca');
     proveedor.marcas = marcas.map((m: any) => m.nombre_marca);
+    (proveedor as any).ids_marcas = marcas.map((m: any) => Number(m.id_marca));
 
     const lineas = await tx('lineas_productos')
       .join(
@@ -126,8 +129,9 @@ export class ProveedoresService {
         'proveedor_lineas.id_linea',
       )
       .where('proveedor_lineas.id_proveedor', id_proveedor)
-      .select('lineas_productos.nombre_linea');
+      .select('lineas_productos.id_linea', 'lineas_productos.nombre_linea');
     proveedor.lineas_productos = lineas.map((l: any) => l.nombre_linea);
+    (proveedor as any).ids_lineas = lineas.map((l: any) => Number(l.id_linea));
 
     return proveedor;
   }

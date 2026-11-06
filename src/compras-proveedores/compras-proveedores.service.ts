@@ -113,6 +113,45 @@ export class ComprasProveedoresService {
           }
         }
 
+        // Validar que cada producto de la compra pertenezca a las marcas abastecidas por el proveedor
+        const marcasProveedor = await trx('proveedor_marcas')
+          .where({ id_proveedor: compraInfo.id_proveedor })
+          .pluck('id_marca');
+
+        const idsMarcasProveedor = new Set(
+          marcasProveedor.map((id) => Number(id)),
+        );
+
+        if (idsMarcasProveedor.size === 0) {
+          throw new BadRequestException(
+            `El proveedor "${proveedor.razon_social}" no tiene marcas asociadas. Asocie al menos una marca antes de registrar una compra.`,
+          );
+        }
+
+        for (const d of detallesConSubtotal) {
+          const producto = await trx('productos as p')
+            .leftJoin('marcas as m', 'p.id_marca', 'm.id_marca')
+            .select('p.*', 'm.nombre_marca')
+            .where('p.id_producto', d.id_producto)
+            .first();
+
+          if (!producto) {
+            throw new NotFoundException(
+              `Producto con ID ${d.id_producto} no encontrado.`,
+            );
+          }
+
+          const perteneceAlProveedor =
+            producto.id_marca != null &&
+            idsMarcasProveedor.has(Number(producto.id_marca));
+
+          if (!perteneceAlProveedor) {
+            throw new BadRequestException(
+              `El producto "${producto.nombre_producto}" (marca: ${producto.nombre_marca ?? 'sin marca'}) no corresponde a las marcas abastecidas por el proveedor "${proveedor.razon_social}".`,
+            );
+          }
+        }
+
         // 1. Insertar maestro (compra)
         const [compraInsertada] = await trx('compras_proveedores')
           .insert({

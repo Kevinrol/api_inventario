@@ -7,6 +7,7 @@ import {
   IsDateString,
   IsEnum,
   IsString,
+  IsNotEmpty,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
@@ -38,13 +39,19 @@ export class CreatePedidoProveedorDto {
   fecha_pedido?: string;
 
   @ApiProperty({
-    required: false,
-    description: 'Fecha estimada de entrega (YYYY-MM-DD)',
+    required: true,
+    description: 'Fecha estimada de entrega (al menos 1 día posterior, a partir de mañana)',
     example: '2026-10-25',
   })
-  @IsOptional()
-  @IsDateString()
-  fecha_entrega_estimada?: string;
+  @IsNotEmpty({ message: 'La fecha estimada de entrega es obligatoria.' })
+  @IsDateString(
+    {},
+    {
+      message:
+        'La fecha estimada de entrega debe tener un formato de fecha válido.',
+    },
+  )
+  fecha_entrega_estimada: string;
 
   @ApiProperty({
     enum: [EstadoPedido.PENDIENTE, EstadoPedido.ENVIADO],

@@ -64,27 +64,39 @@ export class PedidosProveedorService {
         );
       }
 
-      // 2. Obtener las marcas y líneas que abastece el proveedor para validar
-      //    que cada producto del detalle le corresponda (sin asignaciones cruzadas).
-      const [marcasProveedor, lineasProveedor] = await Promise.all([
-        trx('proveedor_marcas')
-          .where({ id_proveedor: pedidoInfo.id_proveedor })
-          .pluck('id_marca'),
-        trx('proveedor_lineas')
-          .where({ id_proveedor: pedidoInfo.id_proveedor })
-          .pluck('id_linea'),
-      ]);
+      // Validar que la fecha estimada de entrega sea obligatoria y al menos 1 día posterior (a partir de mañana)
+      if (!pedidoInfo.fecha_entrega_estimada) {
+        throw new BadRequestException(
+          'La fecha estimada de entrega es obligatoria.',
+        );
+      }
+
+      const entregaStr = pedidoInfo.fecha_entrega_estimada.split('T')[0];
+      const hoy = new Date();
+      const anio = hoy.getFullYear();
+      const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+      const dia = String(hoy.getDate()).padStart(2, '0');
+      const hoyStr = `${anio}-${mes}-${dia}`;
+
+      if (entregaStr <= hoyStr) {
+        throw new BadRequestException(
+          'La fecha estimada de entrega debe ser de al menos un día posterior a la fecha de registro del pedido (a partir de mañana).',
+        );
+      }
+
+      // 2. Obtener las marcas que abastece el proveedor para validar
+      //    que cada producto del detalle le corresponda a sus marcas.
+      const marcasProveedor = await trx('proveedor_marcas')
+        .where({ id_proveedor: pedidoInfo.id_proveedor })
+        .pluck('id_marca');
 
       const idsMarcasProveedor = new Set(
         marcasProveedor.map((id) => Number(id)),
       );
-      const idsLineasProveedor = new Set(
-        lineasProveedor.map((id) => Number(id)),
-      );
 
-      if (idsMarcasProveedor.size === 0 && idsLineasProveedor.size === 0) {
+      if (idsMarcasProveedor.size === 0) {
         throw new BadRequestException(
-          `El proveedor "${proveedor.razon_social}" no tiene marcas ni líneas asociadas. Asocie al menos una marca o línea antes de registrar una orden de pedido.`,
+          `El proveedor "${proveedor.razon_social}" no tiene marcas asociadas. Asocie al menos una marca antes de registrar una orden de pedido.`,
         );
       }
 
@@ -95,8 +107,7 @@ export class PedidosProveedorService {
       for (const item of detalles) {
         const producto = await trx('productos as p')
           .leftJoin('marcas as m', 'p.id_marca', 'm.id_marca')
-          .leftJoin('lineas_productos as l', 'p.id_linea', 'l.id_linea')
-          .select('p.*', 'm.nombre_marca', 'l.nombre_linea')
+          .select('p.*', 'm.nombre_marca')
           .where('p.id_producto', item.id_producto)
           .first();
         if (!producto) {
@@ -106,14 +117,12 @@ export class PedidosProveedorService {
         }
 
         const perteneceAlProveedor =
-          (producto.id_marca != null &&
-            idsMarcasProveedor.has(Number(producto.id_marca))) ||
-          (producto.id_linea != null &&
-            idsLineasProveedor.has(Number(producto.id_linea)));
+          producto.id_marca != null &&
+          idsMarcasProveedor.has(Number(producto.id_marca));
 
         if (!perteneceAlProveedor) {
           throw new BadRequestException(
-            `El producto "${producto.nombre_producto}" (marca: ${producto.nombre_marca ?? 'sin marca'}, línea: ${producto.nombre_linea ?? 'sin línea'}) no corresponde a las marcas ni líneas abastecidas por el proveedor "${proveedor.razon_social}".`,
+            `El producto "${producto.nombre_producto}" (marca: ${producto.nombre_marca ?? 'sin marca'}) no corresponde a las marcas abastecidas por el proveedor "${proveedor.razon_social}".`,
           );
         }
 
@@ -328,6 +337,26 @@ export class PedidosProveedorService {
 
     const datosActualizar: Partial<UpdatePedidoProveedorDto> = {};
     if (updateDto.fecha_entrega_estimada !== undefined) {
+      if (
+        !updateDto.fecha_entrega_estimada ||
+        updateDto.fecha_entrega_estimada.trim() === ''
+      ) {
+        throw new BadRequestException(
+          'La fecha estimada de entrega es obligatoria.',
+        );
+      }
+      const entregaStr = updateDto.fecha_entrega_estimada.split('T')[0];
+      const hoy = new Date();
+      const anio = hoy.getFullYear();
+      const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+      const dia = String(hoy.getDate()).padStart(2, '0');
+      const hoyStr = `${anio}-${mes}-${dia}`;
+
+      if (entregaStr <= hoyStr) {
+        throw new BadRequestException(
+          'La nueva fecha estimada de entrega debe ser de al menos un día posterior a la fecha actual (a partir de mañana).',
+        );
+      }
       datosActualizar.fecha_entrega_estimada = updateDto.fecha_entrega_estimada;
     }
     if (updateDto.estado_pedido !== undefined) {

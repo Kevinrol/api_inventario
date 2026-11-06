@@ -48,6 +48,18 @@ export class Proveedore {
   })
   marcas?: string[];
 
+  @ApiPropertyOptional({
+    description: 'IDs de marcas distribuidas por el proveedor',
+    type: [Number],
+  })
+  ids_marcas?: number[];
+
+  @ApiPropertyOptional({
+    description: 'IDs de líneas distribuidas por el proveedor',
+    type: [Number],
+  })
+  ids_lineas?: number[];
+
   @ApiProperty({
     description: 'Estado del proveedor (true = activo, false = inactivo)',
     example: true,

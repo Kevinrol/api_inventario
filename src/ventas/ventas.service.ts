@@ -137,7 +137,19 @@ export class VentasService {
       let montoCambio: number | null = null;
       let estadoPago = ventaInfo.estado_pago || EstadoPagoVenta.PENDIENTE;
 
-      if (ventaInfo.metodo_pago === MetodoPago.EFECTIVO) {
+      if (ventaInfo.tipo_venta === TipoVenta.CREDITO) {
+        // En ventas a crédito para mayoristas, el estado por defecto es Pendiente
+        estadoPago = ventaInfo.estado_pago || EstadoPagoVenta.PENDIENTE;
+        if (
+          ventaInfo.monto_efectivo !== undefined &&
+          ventaInfo.monto_efectivo !== null
+        ) {
+          montoEfectivo = Number(ventaInfo.monto_efectivo);
+          montoCambio = Number(
+            Math.max(0, montoEfectivo - montoTotalCalculado).toFixed(2),
+          );
+        }
+      } else if (ventaInfo.metodo_pago === MetodoPago.EFECTIVO) {
         if (
           ventaInfo.monto_efectivo === undefined ||
           ventaInfo.monto_efectivo === null
