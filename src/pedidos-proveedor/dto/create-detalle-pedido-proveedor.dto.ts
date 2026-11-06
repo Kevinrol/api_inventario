@@ -4,6 +4,7 @@ import {
   IsNotEmpty,
   IsOptional,
   Min,
+  Max,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -14,7 +15,7 @@ export class CreateDetallePedidoProveedorDto {
 
   @ApiProperty({ description: 'Cantidad solicitada', example: 10 })
   @IsNumber()
-  @Min(1)
+  @Min(1, { message: 'La cantidad solicitada debe ser de al menos 1 unidad.' })
   cantidad_solicitada: number;
 
   @ApiProperty({
@@ -22,15 +23,18 @@ export class CreateDetallePedidoProveedorDto {
     example: 'Caja',
   })
   @IsString()
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'La unidad de venta es obligatoria.' })
   unidad_venta: string;
 
   @ApiProperty({
     description: 'Precio unitario acordado con el proveedor',
     example: 45.5,
   })
-  @IsNumber()
-  @Min(0)
+  @IsNumber(
+    {},
+    { message: 'El precio unitario de compra debe ser un número válido.' },
+  )
+  @Min(0, { message: 'El precio unitario de compra no puede ser negativo.' })
   precio_unitario_compra: number;
 
   @ApiProperty({
@@ -40,7 +44,11 @@ export class CreateDetallePedidoProveedorDto {
     example: 5,
   })
   @IsOptional()
-  @IsNumber()
-  @Min(0)
+  @IsNumber(
+    {},
+    { message: 'El porcentaje de descuento debe ser un número válido.' },
+  )
+  @Min(0, { message: 'El porcentaje de descuento no puede ser menor a 0%.' })
+  @Max(100, { message: 'El porcentaje de descuento no puede ser mayor a 100%.' })
   porcentaje_descuento?: number;
 }

@@ -30,8 +30,8 @@ export class LineaRecepcionPedidoDto {
     description: 'Cantidad a recibir en esta entrega',
     example: 5,
   })
-  @IsNumber()
-  @Min(1)
+  @IsNumber({}, { message: 'La cantidad a recibir debe ser un número válido.' })
+  @Min(1, { message: 'La cantidad a recibir debe ser de al menos 1 unidad.' })
   cantidad_recibida: number;
 }
 

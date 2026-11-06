@@ -109,11 +109,11 @@ const CLIENTES = [
   ['Comercial Quispe e Hijos', '1034567028', '74455667', 'Calle Comercio Nro. 890, Zona San Pedro, La Paz', 'Mayorista'],
   ['Librería “El Saber” de Eduardo Callisaya Apaza', '6178934', '75566778', 'Av. Juan Pablo II Nro. 320, Villa Adela, El Alto', 'Mayorista'],
   ['Papelería “La Escuelita” de Marleny Copa Flores', '4890123', '76677889', 'Calle Illampu Nro. 150, Zona Norte, La Paz', 'Mayorista'],
-  ['Carmen Rosa Yujra Ticona', '7234561', '77788990', 'Calle 3 Nro. 45, Zona Villa Dolores, El Alto', 'Minorista'],
-  ['Roberto Gutiérrez Mendoza', '3456123', '70899001', 'Av. Buenos Aires Nro. 780, La Paz', 'Minorista'],
-  ['Unidad Educativa “Mariscal Sucre”', '1015678034', '22456789', 'Av. Camacho Nro. 1100, La Paz', 'Minorista'],
-  ['Daniela Nina Vargas', '8123456', '71011223', 'Calle Sagárnaga Nro. 210, La Paz', 'Minorista'],
-  ['Wilson Apaza Condori', '5678901', '72122334', 'Av. Cívica Nro. 560, Zona Ceja, El Alto', 'Minorista'],
+  ['Carmen Rosa Yujra Ticona', '7234561', '77788990', 'Calle 3 Nro. 45, Zona Villa Dolores, El Alto', 'Mayorista'],
+  ['Roberto Gutiérrez Mendoza', '3456123', '70899001', 'Av. Buenos Aires Nro. 780, La Paz', 'Mayorista'],
+  ['Unidad Educativa “Mariscal Sucre”', '1015678034', '22456789', 'Av. Camacho Nro. 1100, La Paz', 'Mayorista'],
+  ['Daniela Nina Vargas', '8123456', '71011223', 'Calle Sagárnaga Nro. 210, La Paz', 'Mayorista'],
+  ['Wilson Apaza Condori', '5678901', '72122334', 'Av. Cívica Nro. 560, Zona Ceja, El Alto', 'Mayorista'],
   ['Librería “Kantuta” de Silvia Huanca Rojas', '4412345', '73233445', 'Av. Bolivia Nro. 98, Zona Rosas Pampa, El Alto', 'Mayorista'],
 ];
 

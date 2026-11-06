@@ -26,12 +26,15 @@ export class CreateDetalleCompraProveedorDto {
 
   @ApiProperty({ description: 'Cantidad recibida', example: 10 })
   @IsNumber()
-  @Min(1)
+  @Min(1, { message: 'La cantidad recibida debe ser de al menos 1 unidad.' })
   cantidad_recibida: number;
 
   @ApiProperty({ description: 'Precio costo unitario', example: 50.5 })
-  @IsNumber()
-  @Min(0)
+  @IsNumber(
+    {},
+    { message: 'El precio de costo unitario debe ser un número válido.' },
+  )
+  @Min(0, { message: 'El precio de costo unitario no puede ser negativo.' })
   precio_costo_unitario: number;
 }
 
