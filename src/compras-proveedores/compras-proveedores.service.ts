@@ -74,7 +74,8 @@ export class ComprasProveedoresService {
 
     try {
       return await this.knex.transaction(async (trx) => {
-        let mapaDetallePedidoPorProducto = new Map<number, number>();
+        let mapaDetallePedidoPorProducto = new Map<number, any>();
+        let mapaDetallePedidoPorId = new Map<number, any>();
 
         // Si viene id_pedido, validar que exista, que no esté Cancelado ni Recibido,
         // y preparar la búsqueda automática de id_detalle_pedido por id_producto
@@ -104,10 +105,11 @@ export class ComprasProveedoresService {
             .orderBy('id_detalle_pedido', 'asc');
 
           for (const lp of lineasPedido) {
+            mapaDetallePedidoPorId.set(Number(lp.id_detalle_pedido), lp);
             if (!mapaDetallePedidoPorProducto.has(Number(lp.id_producto))) {
               mapaDetallePedidoPorProducto.set(
                 Number(lp.id_producto),
-                Number(lp.id_detalle_pedido),
+                lp,
               );
             }
           }
@@ -169,18 +171,32 @@ export class ComprasProveedoresService {
 
         // 2. Insertar detalles (con id_detalle_pedido enviado o buscado por id_producto)
         const detallesAInsertar = detallesConSubtotal.map((d) => {
+          const lineaPed =
+            d.id_detalle_pedido != null
+              ? mapaDetallePedidoPorId.get(Number(d.id_detalle_pedido))
+              : compraInfo.id_pedido
+                ? mapaDetallePedidoPorProducto.get(Number(d.id_producto))
+                : undefined;
+
           const idDetallePedido =
             d.id_detalle_pedido ??
-            (compraInfo.id_pedido
-              ? (mapaDetallePedidoPorProducto.get(Number(d.id_producto)) ??
-                null)
-              : null);
+            (lineaPed ? Number(lineaPed.id_detalle_pedido) : null);
+
+          const unidadCompra = String(lineaPed?.unidad_venta || 'Unidad');
+          const factorConversion = Math.max(
+            1,
+            Number(lineaPed?.factor_conversion ?? 1),
+          );
+          const unidadesTotales = Number(d.cantidad_recibida) * factorConversion;
 
           return {
             id_compra: compraInsertada.id_compra,
             id_detalle_pedido: idDetallePedido,
             id_producto: d.id_producto,
             cantidad_recibida: d.cantidad_recibida,
+            unidad_compra: unidadCompra,
+            factor_conversion: factorConversion,
+            unidades_totales: unidadesTotales,
             precio_costo_unitario: d.precio_costo_unitario,
             subtotal: d.subtotal,
           };
@@ -190,11 +206,11 @@ export class ComprasProveedoresService {
           .insert(detallesAInsertar)
           .returning('*');
 
-        // 3. Actualizar stock_actual de cada producto
+        // 3. Actualizar stock_actual de cada producto en unidades sueltas
         for (const d of detallesAInsertar) {
           await trx('productos')
             .where({ id_producto: d.id_producto })
-            .increment('stock_actual', d.cantidad_recibida);
+            .increment('stock_actual', d.unidades_totales);
         }
 
         return {
@@ -232,6 +248,7 @@ export class ComprasProveedoresService {
       .select(
         'compras_proveedores.*',
         'proveedores.razon_social as razon_social_proveedor',
+        'proveedores.nit as nit_proveedor',
         'usuarios.nombre_completo as nombre_usuario',
       )
       .orderBy('compras_proveedores.fecha_recepcion', 'desc');
@@ -253,7 +270,43 @@ export class ComprasProveedoresService {
     }
 
     const rows = await query;
-    return rows.map((r) => this.parseCompra(r));
+    if (rows.length === 0) return [];
+
+    const idsCompras = rows.map((r) => r.id_compra).filter((id) => id != null);
+    const mapaDetalles = new Map<number, any[]>();
+
+    if (idsCompras.length > 0) {
+      const detalles = await this.knex('detalle_compras_proveedores as d')
+        .leftJoin('productos as p', 'd.id_producto', 'p.id_producto')
+        .leftJoin('marcas as m', 'p.id_marca', 'm.id_marca')
+        .leftJoin('lineas_productos as l', 'p.id_linea', 'l.id_linea')
+        .select(
+          'd.*',
+          'p.nombre_producto',
+          'p.codigo_barras',
+          'p.id_marca',
+          'm.nombre_marca',
+          'p.id_linea',
+          'l.nombre_linea',
+        )
+        .whereIn('d.id_compra', idsCompras);
+
+      for (const d of detalles) {
+        const idCompra = Number(d.id_compra);
+        const lista = mapaDetalles.get(idCompra) ?? [];
+        lista.push({
+          ...d,
+          precio_costo_unitario: Number(d.precio_costo_unitario),
+          subtotal: Number(d.subtotal),
+        });
+        mapaDetalles.set(idCompra, lista);
+      }
+    }
+
+    return rows.map((r) => ({
+      ...this.parseCompra(r),
+      detalles: mapaDetalles.get(Number(r.id_compra)) ?? [],
+    }));
   }
 
   async findOne(id_compra: number): Promise<CompraProveedor> {
@@ -271,6 +324,7 @@ export class ComprasProveedoresService {
       .select(
         'compras_proveedores.*',
         'proveedores.razon_social as razon_social_proveedor',
+        'proveedores.nit as nit_proveedor',
         'usuarios.nombre_completo as nombre_usuario',
       )
       .where('compras_proveedores.id_compra', id_compra)
@@ -280,18 +334,24 @@ export class ComprasProveedoresService {
       throw new NotFoundException(`Compra con ID ${id_compra} no encontrada`);
     }
 
-    const detalles = await this.knex('detalle_compras_proveedores')
+    const detalles = await this.knex('detalle_compras_proveedores as d')
       .leftJoin(
-        'productos',
-        'detalle_compras_proveedores.id_producto',
-        'productos.id_producto',
+        'productos as p',
+        'd.id_producto',
+        'p.id_producto',
       )
+      .leftJoin('marcas as m', 'p.id_marca', 'm.id_marca')
+      .leftJoin('lineas_productos as l', 'p.id_linea', 'l.id_linea')
       .select(
-        'detalle_compras_proveedores.*',
-        'productos.nombre_producto',
-        'productos.codigo_barras',
+        'd.*',
+        'p.nombre_producto',
+        'p.codigo_barras',
+        'p.id_marca',
+        'm.nombre_marca',
+        'p.id_linea',
+        'l.nombre_linea',
       )
-      .where('detalle_compras_proveedores.id_compra', id_compra);
+      .where('d.id_compra', id_compra);
 
     return {
       ...this.parseCompra(compra),
@@ -357,9 +417,13 @@ export class ComprasProveedoresService {
         }
 
         const stockActual = Number(producto.stock_actual ?? 0);
-        if (stockActual < d.cantidad_recibida) {
+        const unidadesARevertir = Number(
+          d.unidades_totales ??
+            Number(d.cantidad_recibida) * Math.max(1, Number(d.factor_conversion ?? 1)),
+        );
+        if (stockActual < unidadesARevertir) {
           throw new BadRequestException(
-            `No se puede anular la compra: el producto "${producto.nombre_producto}" tiene stock actual de ${stockActual}, insuficiente para restar las ${d.cantidad_recibida} unidades ingresadas por esta compra.`,
+            `No se puede anular la compra: el producto "${producto.nombre_producto}" tiene stock actual de ${stockActual}, insuficiente para restar las ${unidadesARevertir} unidades ingresadas por esta compra.`,
           );
         }
       }
@@ -371,9 +435,13 @@ export class ComprasProveedoresService {
 
       // 2. Revertir el stock restando las unidades recibidas
       for (const d of detalles) {
+        const unidadesARevertir = Number(
+          d.unidades_totales ??
+            Number(d.cantidad_recibida) * Math.max(1, Number(d.factor_conversion ?? 1)),
+        );
         await trx('productos')
           .where({ id_producto: d.id_producto })
-          .decrement('stock_actual', d.cantidad_recibida);
+          .decrement('stock_actual', unidadesARevertir);
       }
 
       return await this.findOne(id_compra);

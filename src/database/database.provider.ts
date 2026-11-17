@@ -13,7 +13,12 @@ export const databaseProvider: Provider = {
     return knex({
       client: 'pg',
       connection: databaseUrl,
-      pool: { min: 2, max: 10 },
+      pool: {
+        min: 0,
+        max: 5,
+        acquireTimeoutMillis: 10000,
+        idleTimeoutMillis: 30000,
+      },
     });
   },
 };

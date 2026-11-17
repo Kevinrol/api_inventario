@@ -139,10 +139,60 @@ export class PedidosProveedorService {
         );
         totalCalculado = Number((totalCalculado + subtotal).toFixed(2));
 
+        // Resolver y/o actualizar la unidad del producto en producto_unidades
+        const nombreUnidad = item.unidad_venta.trim();
+        const claveUnidad = nombreUnidad.toLowerCase();
+        const valoresFijos: Record<string, number> = {
+          unidad: 1,
+          'media docena': 6,
+          docena: 12,
+        };
+        const valorFijo = valoresFijos[claveUnidad];
+
+        let registroUnidad = await trx('producto_unidades')
+          .where('id_producto', item.id_producto)
+          .andWhereRaw('lower(btrim(nombre_unidad)) = ?', [claveUnidad])
+          .first();
+
+        let factorConversion: number;
+        if (valorFijo !== undefined) {
+          factorConversion = valorFijo;
+        } else if (item.factor_conversion && Number(item.factor_conversion) >= 1) {
+          factorConversion = Math.floor(Number(item.factor_conversion));
+        } else if (registroUnidad) {
+          factorConversion = Number(registroUnidad.cantidad_unidades);
+        } else {
+          factorConversion = 1;
+        }
+
+        if (!registroUnidad) {
+          const [insertada] = await trx('producto_unidades')
+            .insert({
+              id_producto: item.id_producto,
+              nombre_unidad: nombreUnidad,
+              cantidad_unidades: factorConversion,
+              es_editable: valorFijo === undefined,
+            })
+            .returning('*');
+          registroUnidad = insertada;
+        } else if (
+          registroUnidad.es_editable &&
+          valorFijo === undefined &&
+          Number(registroUnidad.cantidad_unidades) !== factorConversion
+        ) {
+          const [actualizada] = await trx('producto_unidades')
+            .where({ id_unidad_producto: registroUnidad.id_unidad_producto })
+            .update({ cantidad_unidades: factorConversion })
+            .returning('*');
+          registroUnidad = actualizada;
+        }
+
         detallesAInsertar.push({
           id_producto: item.id_producto,
           cantidad_solicitada: item.cantidad_solicitada,
-          unidad_venta: item.unidad_venta,
+          unidad_venta: nombreUnidad,
+          id_unidad_producto: registroUnidad?.id_unidad_producto ?? null,
+          factor_conversion: factorConversion,
           precio_unitario_compra: precioUnitario,
           porcentaje_descuento: desc,
           subtotal,
@@ -174,6 +224,8 @@ export class PedidosProveedorService {
             id_producto: d.id_producto,
             cantidad_solicitada: d.cantidad_solicitada,
             unidad_venta: d.unidad_venta,
+            id_unidad_producto: d.id_unidad_producto,
+            factor_conversion: d.factor_conversion,
             precio_unitario_compra: d.precio_unitario_compra,
             porcentaje_descuento: d.porcentaje_descuento,
             subtotal: d.subtotal,
@@ -184,6 +236,7 @@ export class PedidosProveedorService {
           ...detInsertado,
           cantidad_recibida: 0,
           cantidad_pendiente: Number(detInsertado.cantidad_solicitada),
+          factor_conversion: Number(detInsertado.factor_conversion ?? 1),
           precio_unitario_compra: Number(detInsertado.precio_unitario_compra),
           porcentaje_descuento: Number(detInsertado.porcentaje_descuento),
           subtotal: Number(detInsertado.subtotal),
@@ -297,6 +350,7 @@ export class PedidosProveedorService {
           cantidad_solicitada: solicitada,
           cantidad_recibida: recibida,
           cantidad_pendiente: Math.max(0, solicitada - recibida),
+          factor_conversion: Number(d.factor_conversion ?? 1),
           precio_unitario_compra: Number(d.precio_unitario_compra),
           porcentaje_descuento: Number(d.porcentaje_descuento),
           subtotal: Number(d.subtotal),
@@ -437,6 +491,9 @@ export class PedidosProveedorService {
           id_detalle_pedido: number;
           id_producto: number;
           cantidad_recibida: number;
+          unidad_compra: string;
+          factor_conversion: number;
+          unidades_totales: number;
           precio_costo_unitario: number;
           subtotal: number;
         }> = [];
@@ -476,11 +533,16 @@ export class PedidosProveedorService {
             const subtotal = Number(
               (item.cantidad_recibida * precioEfectivo).toFixed(2),
             );
+            const factor = Math.max(1, Number(lineaPedido.factor_conversion ?? 1));
+            const cantRecibida = Number(item.cantidad_recibida);
 
             lineasARecibir.push({
               id_detalle_pedido: Number(lineaPedido.id_detalle_pedido),
               id_producto: Number(lineaPedido.id_producto),
-              cantidad_recibida: Number(item.cantidad_recibida),
+              cantidad_recibida: cantRecibida,
+              unidad_compra: String(lineaPedido.unidad_venta || 'Unidad'),
+              factor_conversion: factor,
+              unidades_totales: cantRecibida * factor,
               precio_costo_unitario: precioEfectivo,
               subtotal,
             });
@@ -498,11 +560,15 @@ export class PedidosProveedorService {
               (Number(dp.precio_unitario_compra) * (1 - desc / 100)).toFixed(2),
             );
             const subtotal = Number((pendiente * precioEfectivo).toFixed(2));
+            const factor = Math.max(1, Number(dp.factor_conversion ?? 1));
 
             lineasARecibir.push({
               id_detalle_pedido: Number(dp.id_detalle_pedido),
               id_producto: Number(dp.id_producto),
               cantidad_recibida: pendiente,
+              unidad_compra: String(dp.unidad_venta || 'Unidad'),
+              factor_conversion: factor,
+              unidades_totales: pendiente * factor,
               precio_costo_unitario: precioEfectivo,
               subtotal,
             });
@@ -533,7 +599,7 @@ export class PedidosProveedorService {
           })
           .returning('*');
 
-        // 2. Insertar detalles de compra (con id_detalle_pedido) e incrementar stock_actual
+        // 2. Insertar detalles de compra (con id_detalle_pedido) e incrementar stock_actual en unidades sueltas
         // Nota: el trigger de BD actualiza automáticamente estado_pedido a Parcial o Recibido
         const detallesCompraInsertados: any[] = [];
         for (const l of lineasARecibir) {
@@ -543,6 +609,9 @@ export class PedidosProveedorService {
               id_detalle_pedido: l.id_detalle_pedido,
               id_producto: l.id_producto,
               cantidad_recibida: l.cantidad_recibida,
+              unidad_compra: l.unidad_compra,
+              factor_conversion: l.factor_conversion,
+              unidades_totales: l.unidades_totales,
               precio_costo_unitario: l.precio_costo_unitario,
               subtotal: l.subtotal,
             })
@@ -550,10 +619,12 @@ export class PedidosProveedorService {
 
           await trx('productos')
             .where({ id_producto: l.id_producto })
-            .increment('stock_actual', l.cantidad_recibida);
+            .increment('stock_actual', l.unidades_totales);
 
           detallesCompraInsertados.push({
             ...detCompra,
+            factor_conversion: Number(detCompra.factor_conversion ?? 1),
+            unidades_totales: Number(detCompra.unidades_totales ?? l.unidades_totales),
             precio_costo_unitario: Number(detCompra.precio_costo_unitario),
             subtotal: Number(detCompra.subtotal),
           });
