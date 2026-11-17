@@ -9,9 +9,17 @@ export interface DetalleCompraProveedor {
   id_detalle_pedido?: number | null;
   id_producto: number;
   cantidad_recibida: number;
+  unidad_compra?: string;
+  factor_conversion?: number;
+  unidades_totales?: number;
   precio_costo_unitario: number;
   subtotal: number;
   nombre_producto?: string;
+  codigo_barras?: string | null;
+  id_marca?: number | null;
+  nombre_marca?: string | null;
+  id_linea?: number | null;
+  nombre_linea?: string | null;
 }
 
 export interface CompraProveedor {
@@ -25,5 +33,6 @@ export interface CompraProveedor {
   comprobante_url?: string | null;
   detalles?: DetalleCompraProveedor[];
   razon_social_proveedor?: string;
+  nit_proveedor?: string;
   nombre_usuario?: string;
 }

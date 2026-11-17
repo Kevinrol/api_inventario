@@ -1,5 +1,6 @@
 import {
   IsNumber,
+  IsInt,
   IsString,
   IsNotEmpty,
   IsOptional,
@@ -19,12 +20,31 @@ export class CreateDetallePedidoProveedorDto {
   cantidad_solicitada: number;
 
   @ApiProperty({
-    description: 'Unidad de venta (ej. Unidad, Caja, Paquete, Docena)',
+    description: 'Unidad de pedido (ej. Unidad, Caja, Caja Madre, Paquete, Docena)',
     example: 'Caja',
   })
   @IsString()
-  @IsNotEmpty({ message: 'La unidad de venta es obligatoria.' })
+  @IsNotEmpty({ message: 'La unidad de pedido es obligatoria.' })
   unidad_venta: string;
+
+  @ApiProperty({
+    required: false,
+    description: 'ID de la unidad del producto en producto_unidades (opcional)',
+    example: 1,
+  })
+  @IsOptional()
+  @IsInt()
+  id_unidad_producto?: number;
+
+  @ApiProperty({
+    required: false,
+    description: 'Cantidad de unidades sueltas por presentación (ej. Caja = 24, Docena = 12)',
+    example: 24,
+  })
+  @IsOptional()
+  @IsInt({ message: 'La cantidad por unidad debe ser un número entero.' })
+  @Min(1, { message: 'La cantidad por unidad debe ser de al menos 1.' })
+  factor_conversion?: number;
 
   @ApiProperty({
     description: 'Precio unitario acordado con el proveedor',

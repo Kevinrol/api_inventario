@@ -57,6 +57,13 @@ export class ProductosController {
     return this.productosService.findOne(+id);
   }
 
+  @Get(':id/unidades')
+  @ApiOperation({ summary: 'Obtener las unidades/presentaciones de un producto' })
+  async getUnidades(@Param('id') id: string) {
+    const prod = await this.productosService.findOne(+id);
+    return prod.unidades ?? [];
+  }
+
   @Patch(':id/stock')
   @ApiOperation({ summary: 'Ajustar el stock de un producto' })
   @ApiResponse({ status: 200, description: 'Stock actualizado correctamente.' })
